@@ -20,7 +20,7 @@ void parse(const char *path, int level);
 
 int main(int argc, char **argv) {	
 
-	const char *path = argc > 1 ? argv[2] : ".";
+	const char *path = argc > 1 ? argv[argc-1] : ".";
 	printf("%s\n", path);
 	parse(path, 0);
 	printf("\n\n\n%d files, %d directories\n", files, directories);
@@ -37,12 +37,6 @@ int is_directory(const char *path) {
    	return S_ISDIR(statbuf.st_mode);
 }
 
-// // if path is a regular file 
-// int is_file(const char *path) {//XXX: this function is probably not needed
-//     struct stat statbuf;
-//     stat(path, &statbuf);
-//     return S_ISREG(statbuf.st_mode);
-// }
 
 // returns the number of dirs inside path
 int get_file_count(const char *path) {
@@ -50,7 +44,9 @@ int get_file_count(const char *path) {
     DIR *dr = opendir(path);
 	int count = 0;
     while ((de = readdir(dr)) != NULL) {
-		count++;
+		if (de->d_name[0] != '.') {
+			count++;
+		}
 	}
 	closedir(dr);
 	return count;
@@ -65,13 +61,12 @@ void parse(const char *path, int level) {
 		return;
 	}
 	
-	bool first_file = true;
 	int count = get_file_count(path);
 	int file_number = 0;
     while ((de = readdir(dr)) != NULL) {
         char *name = de->d_name;
 		char real_path[strlen(name)+1+strlen(path)];
-		strcat(real_path, path);
+		strcpy(real_path, path);
 		strcat(real_path, "/");
 		strcat(real_path, name);
 
@@ -101,11 +96,8 @@ void parse(const char *path, int level) {
 				printf("%s\n", name);
 				files++;
 			}
+			file_number++;	
 		}
-		first_file = false;
-		file_number++;
 	}
-
     closedir(dr); 
-
 }
